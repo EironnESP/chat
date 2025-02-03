@@ -31,11 +31,6 @@ public class ServidorTCP {
                 HiloServidorTCP h = new HiloServidorTCP(s);
                 h.start();
             }
-            //dis.close();
-            //is.close();
-            //s.close();
-            //ss.close();
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

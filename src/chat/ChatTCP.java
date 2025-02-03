@@ -93,14 +93,10 @@ public class ChatTCP extends Thread {
                 String mensaje = dis.readUTF();
                 mensajes.setText(mensajes.getText() + "\n" + mensaje);
                 if (mensaje.charAt(0) == '!') {
-                    String[] partido = mensaje.split(" ");
-                    listaUsuarios.setText(listaUsuarios.getText() + "\n" + partido[1]);
+                    mensaje = mensaje.replaceFirst("!", "").trim();
+                    listaUsuarios.setText(listaUsuarios.getText() + "\n" + mensaje);
                 }
             }
-
-            //dos.close();
-            //os.close();
-            //cliente.close();
         } catch (IOException | InterruptedException e) {
         }
     }
