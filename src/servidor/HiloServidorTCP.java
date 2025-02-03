@@ -16,8 +16,22 @@ public class HiloServidorTCP extends Thread{
             InputStream is = s.getInputStream();
             DataInputStream dis = new DataInputStream(is);
 
+            OutputStream out = s.getOutputStream();
+            DataOutputStream dout = new DataOutputStream(out);
+
+            dout.writeUTF(ServidorTCP.registroMensajes);
+
+            String listaUsuarios = "Usuarios";
+
+            for (String s : ServidorTCP.usuarios.values()) {
+                listaUsuarios += "\n" + s;
+            }
+
+            dout.writeUTF(listaUsuarios);
+
             while (true) {
                 String str = dis.readUTF();
+                ServidorTCP.registroMensajes += "\n" + str;
                 System.out.println(str); //debug
                     for (Socket s1 : ServidorTCP.clientes) {
                         OutputStream os = s1.getOutputStream();

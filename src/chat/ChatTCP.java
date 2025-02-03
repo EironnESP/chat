@@ -13,15 +13,10 @@ public class ChatTCP extends Thread {
     public void run() {
         try {
             Thread.sleep(1000);
+
             int id = ServidorTCP.getNumero();
-            Socket cliente = new Socket("localhost", 3333);
 
-            OutputStream os = cliente.getOutputStream();
-            DataOutputStream dos = new DataOutputStream(os);
-
-            InputStream is = cliente.getInputStream();
-            DataInputStream dis = new DataInputStream(is);
-
+            Conexion c = new Conexion();
             //INTERFAZ
             JFrame f = new JFrame();
             f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -51,14 +46,15 @@ public class ChatTCP extends Thread {
             botonNombre.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (!ServidorTCP.usuarios.containsValue(textNombre.getText())) {
+                    if (!ServidorTCP.usuarios.containsValue(textNombre.getText()) && !textNombre.getText().contains(" ")) {
                         ServidorTCP.usuarios.put(id, textNombre.getText().trim());
                         botonNombre.setEnabled(false);
                         textNombre.setEnabled(false);
                         botonEnviar.setEnabled(true);
                         textMensaje.setEnabled(true);
                         try {
-                            dos.writeUTF("! "+ServidorTCP.usuarios.get(id) + " se ha unido");
+                            c.conectar("localhost", 3333);
+                            c.dos.writeUTF("! "+ServidorTCP.usuarios.get(id) + " se ha unido");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -70,7 +66,7 @@ public class ChatTCP extends Thread {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        dos.writeUTF("[" + ServidorTCP.usuarios.get(id)+"] " + textMensaje.getText());
+                        c.dos.writeUTF("[" + ServidorTCP.usuarios.get(id)+"] " + textMensaje.getText());
                         textMensaje.setText("");
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
@@ -89,12 +85,31 @@ public class ChatTCP extends Thread {
             f.setLayout(null);
             f.setVisible(true);
 
+            boolean conexionAbierta = false;
+
+            while(!conexionAbierta) {
+                if (c.dis != null) {
+                    String mensajesPasados = c.dis.readUTF();
+                    if (!mensajesPasados.isEmpty()) {
+                        mensajes.setText(mensajes.getText() + "\n" + mensajesPasados);
+                        listaUsuarios.setText(c.dis.readUTF());
+                    }
+                    conexionAbierta = true;
+                }
+            }
+
             while (true) {
-                String mensaje = dis.readUTF();
-                mensajes.setText(mensajes.getText() + "\n" + mensaje);
-                if (mensaje.charAt(0) == '!') {
-                    mensaje = mensaje.replaceFirst("!", "").trim();
-                    listaUsuarios.setText(listaUsuarios.getText() + "\n" + mensaje);
+                if (c.dis != null) {
+                    String mensaje = c.dis.readUTF();
+                    mensajes.setText(mensajes.getText() + "\n" + mensaje);
+
+                    if (!mensaje.isEmpty() && mensaje.charAt(0) == '!') {
+                        String[] partido = mensaje.split(" ");
+
+                        if (!partido[1].equals(textNombre.getText())) {
+                            listaUsuarios.setText(listaUsuarios.getText() + "\n" + partido[1]);
+                        }
+                    }
                 }
             }
         } catch (IOException | InterruptedException e) {
@@ -102,4 +117,33 @@ public class ChatTCP extends Thread {
     }
 
 
+}
+
+class Conexion {
+    Socket socket = null;
+
+    OutputStream os;
+    DataOutputStream dos;
+
+    InputStream is;
+    DataInputStream dis;
+
+    Conexion() throws IOException {
+    }
+
+    public boolean conectar(String host, int port) {
+        try {
+            this.socket = new Socket(host, port);
+
+            os = socket.getOutputStream();
+            dos = new DataOutputStream(os);
+
+            is = socket.getInputStream();
+            dis = new DataInputStream(is);
+
+            return true;
+        } catch (IOException | SecurityException | IllegalArgumentException e) {
+            return false;
+        }
+    }
 }
