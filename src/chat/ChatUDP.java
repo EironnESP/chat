@@ -1,14 +1,10 @@
 package chat;
 
-import servidor.ServidorTCP;
-import servidor.ServidorUDP;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.*;
-import java.sql.SQLOutput;
 
 public class ChatUDP extends Thread{
     @Override

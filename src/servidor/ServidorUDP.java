@@ -3,7 +3,6 @@ package servidor;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ public class ServidorUDP {
     public static List<DatagramPacket> clientes = new ArrayList<>();
     public static TreeMap<String, Integer> usuariosPuertos = new TreeMap<>();
     public static String registroMensajes = "BIENVENIDO AL CHAT";
-    private static int i = 0;
 
     public static void main(String[] args) {
         DatagramSocket sSocket;
