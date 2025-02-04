@@ -6,10 +6,12 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 
-public class ChatTCP extends Thread {
-
+public class ChatUDP extends Thread{
     private static int i = 0;
 
     public static int getNumero() {
@@ -22,10 +24,11 @@ public class ChatTCP extends Thread {
     public void run() {
         try {
             Thread.sleep(1000);
+            int id = ChatUDP.getNumero(); // TCP
 
-            int id = ChatTCP.getNumero();
+            DatagramSocket sSocket = new DatagramSocket();
+            InetAddress equipo = InetAddress.getByName("localhost");
 
-            Conexion c = new Conexion();
             //INTERFAZ
             JFrame f = new JFrame();
             f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -55,15 +58,19 @@ public class ChatTCP extends Thread {
             botonNombre.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (!ServidorTCP.usuarios.containsValue(textNombre.getText()) && !textNombre.getText().contains(" ")) {
+                    if (!ServidorTCP.usuarios.containsValue(textNombre.getText())) {
                         ServidorTCP.usuarios.put(id, textNombre.getText().trim());
                         botonNombre.setEnabled(false);
                         textNombre.setEnabled(false);
                         botonEnviar.setEnabled(true);
                         textMensaje.setEnabled(true);
+
+                        String s = "! "+ServidorTCP.usuarios.get(id) + " se ha unido";
+                        byte[] cadena = s.getBytes();
+                        DatagramPacket mensaje = new DatagramPacket(cadena, cadena.length, equipo, 3334);
+
                         try {
-                            c.conectar("localhost", 3333);
-                            c.dos.writeUTF("! "+ServidorTCP.usuarios.get(id) + " se ha unido");
+                            sSocket.send(mensaje);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -74,12 +81,16 @@ public class ChatTCP extends Thread {
             botonEnviar.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    String s = "[" + ServidorTCP.usuarios.get(id)+"] " + textMensaje.getText();
+                    byte[] cadena = s.getBytes();
+                    DatagramPacket mensaje = new DatagramPacket(cadena, cadena.length, equipo, 3334);
+
                     try {
-                        c.dos.writeUTF("[" + ServidorTCP.usuarios.get(id)+"] " + textMensaje.getText());
-                        textMensaje.setText("");
+                        sSocket.send(mensaje);
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
+                    textMensaje.setText("");
                 }
             });
 
@@ -94,65 +105,23 @@ public class ChatTCP extends Thread {
             f.setLayout(null);
             f.setVisible(true);
 
-            boolean conexionAbierta = false;
-
-            while(!conexionAbierta) {
-                if (c.dis != null) {
-                    String mensajesPasados = c.dis.readUTF();
-                    if (!mensajesPasados.isEmpty()) {
-                        mensajes.setText(mensajes.getText() + "\n" + mensajesPasados);
-                        listaUsuarios.setText(c.dis.readUTF());
-                    }
-                    conexionAbierta = true;
-                }
-            }
-
             while (true) {
-                if (c.dis != null) {
-                    String mensaje = c.dis.readUTF();
-                    mensajes.setText(mensajes.getText() + "\n" + mensaje);
+                byte[] cadenaRespuesta = new byte[1000];
 
-                    if (!mensaje.isEmpty() && mensaje.charAt(0) == '!') {
-                        String[] partido = mensaje.split(" ");
+                DatagramPacket respuesta = new DatagramPacket(cadenaRespuesta, cadenaRespuesta.length);
+                sSocket.receive(respuesta);
+                String mensaje = new String(respuesta.getData(), 0, respuesta.getLength());
 
-                        if (!partido[1].equals(textNombre.getText())) {
-                            listaUsuarios.setText(listaUsuarios.getText() + "\n" + partido[1]);
-                        }
-                    }
+                mensajes.setText(mensajes.getText() + "\n" + mensaje);
+                if (mensaje.charAt(0) == '!') {
+                    mensaje = mensaje.replaceFirst("!", "").trim();
+                    listaUsuarios.setText(listaUsuarios.getText() + "\n" + mensaje);
                 }
             }
+            
         } catch (IOException | InterruptedException e) {
         }
     }
 
 
-}
-
-class Conexion {
-    Socket socket = null;
-
-    OutputStream os;
-    DataOutputStream dos;
-
-    InputStream is;
-    DataInputStream dis;
-
-    Conexion() throws IOException {
-    }
-
-    public boolean conectar(String host, int port) {
-        try {
-            this.socket = new Socket(host, port);
-
-            os = socket.getOutputStream();
-            dos = new DataOutputStream(os);
-
-            is = socket.getInputStream();
-            dis = new DataInputStream(is);
-
-            return true;
-        } catch (IOException | SecurityException | IllegalArgumentException e) {
-            return false;
-        }
-    }
 }

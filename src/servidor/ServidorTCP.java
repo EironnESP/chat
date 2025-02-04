@@ -14,7 +14,6 @@ public class ServidorTCP {
     public static TreeMap<Integer, String> usuarios = new TreeMap<>();
     public static List<Socket> clientes = new ArrayList<>();
     public static String registroMensajes = "BIENVENIDO AL CHAT";
-    private static int i = 0;
 
     public static void main(String[] args) throws InterruptedException {
         List<ChatTCP> chats = new ArrayList<>();
@@ -39,12 +38,4 @@ public class ServidorTCP {
             throw new RuntimeException(e);
         }
     }
-
-    public static int getNumero() {
-        int n = i;
-        i++;
-        return n;
-    }
-
-
 }
