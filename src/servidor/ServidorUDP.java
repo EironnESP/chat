@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.TreeMap;
 
 public class ServidorUDP {
-    public static List<String> usuarios = new ArrayList<>();
     public static List<DatagramPacket> clientes = new ArrayList<>();
     public static TreeMap<String, Integer> usuariosPuertos = new TreeMap<>();
     public static String registroMensajes = "BIENVENIDO AL CHAT";
