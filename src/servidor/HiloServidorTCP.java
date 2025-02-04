@@ -32,7 +32,7 @@ public class HiloServidorTCP extends Thread{
             while (true) {
                 String str = dis.readUTF();
                 ServidorTCP.registroMensajes += "\n" + str;
-                System.out.println(str); //debug
+
                     for (Socket s1 : ServidorTCP.clientes) {
                         OutputStream os = s1.getOutputStream();
                         DataOutputStream dos = new DataOutputStream(os);

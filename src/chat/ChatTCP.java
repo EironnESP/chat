@@ -25,7 +25,7 @@ public class ChatTCP extends Thread {
 
             int id = ChatTCP.getNumero();
 
-            Conexion c = new Conexion();
+            ConexionTCP c = new ConexionTCP();
             //INTERFAZ
             JFrame f = new JFrame();
             f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -128,7 +128,7 @@ public class ChatTCP extends Thread {
 
 }
 
-class Conexion {
+class ConexionTCP {
     Socket socket = null;
 
     OutputStream os;
@@ -137,7 +137,7 @@ class Conexion {
     InputStream is;
     DataInputStream dis;
 
-    Conexion() throws IOException {
+    ConexionTCP() throws IOException {
     }
 
     public boolean conectar(String host, int port) {
